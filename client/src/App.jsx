@@ -14,6 +14,7 @@ export default function App() {
   const [savedIdea, setSavedIdea] = useState(null);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
 
   function handleChange(event) {
     setForm((current) => ({
@@ -47,6 +48,34 @@ export default function App() {
       setMessage(error.message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function analyzeIdea() {
+    if (!savedIdea) {
+      return;
+    }
+
+    setAnalyzing(true);
+    setMessage("");
+
+    try {
+      const response = await fetch(`${apiUrl}/${savedIdea._id}/analyze`, {
+        method: "POST"
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to analyze idea");
+      }
+
+      setSavedIdea(data);
+      setMessage("AI analysis completed.");
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setAnalyzing(false);
     }
   }
 
@@ -97,10 +126,27 @@ export default function App() {
           <p className="eyebrow">Saved idea</p>
           <h2>{savedIdea.title}</h2>
           <p>{savedIdea.description}</p>
+
           <div className="details">
             <span>{savedIdea.targetUsers || "Target users not added"}</span>
             <span>{savedIdea.industry || "Industry not added"}</span>
           </div>
+
+          <button className="analyze" onClick={analyzeIdea} disabled={analyzing}>
+            {analyzing ? "Analyzing..." : "Analyze with Gemini"}
+          </button>
+
+          {savedIdea.analysis && (
+            <div className="analysis">
+              <h3>Validation analysis</h3>
+              <p><strong>Problem:</strong> {savedIdea.analysis.problem}</p>
+              <p><strong>Target market:</strong> {savedIdea.analysis.targetMarket}</p>
+              <p><strong>Strengths:</strong> {savedIdea.analysis.strengths}</p>
+              <p><strong>Risks:</strong> {savedIdea.analysis.risks}</p>
+              <p><strong>Validation steps:</strong> {savedIdea.analysis.validationSteps}</p>
+              <p><strong>Verdict:</strong> {savedIdea.analysis.verdict}</p>
+            </div>
+          )}
         </section>
       )}
     </main>
