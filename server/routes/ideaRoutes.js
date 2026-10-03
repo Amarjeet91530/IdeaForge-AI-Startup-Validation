@@ -1,9 +1,14 @@
 import { Router } from "express";
-import { createIdea, getIdeas } from "../controllers/ideaController.js";
+import {
+  analyzeIdea,
+  createIdea,
+  getIdeas
+} from "../controllers/ideaController.js";
 
 const router = Router();
 
-router.post("/", createIdea);
 router.get("/", getIdeas);
+router.post("/", createIdea);
+router.post("/:id/analyze", analyzeIdea);
 
 export default router;
